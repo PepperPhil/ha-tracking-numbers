@@ -10,6 +10,7 @@
           "imap_server": "IMAP Server",
           "imap_port": "IMAP Port",
           "use_ssl": "Use SSL",
+          "folder": "Email folder to monitor",
           "days_old": "Days to scan (default 30)"
         }
       }

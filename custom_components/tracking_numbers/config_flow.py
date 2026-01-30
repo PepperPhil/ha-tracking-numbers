@@ -119,6 +119,11 @@ class TrackingNumbersConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(
                     CONF_USE_SSL, default=DEFAULT_USE_SSL
                 ): cv.boolean,
+                # Keep folder configurable in setup so users can target provider-specific
+                # mailboxes where delivery notifications are stored by default.
+                vol.Optional(
+                    CONF_EMAIL_FOLDER, default=DEFAULT_FOLDER
+                ): cv.string,
                 vol.Optional(
                     CONF_DAYS_OLD, default=DEFAULT_DAYS_OLD
                 ): vol.All(cv.positive_int, vol.Range(min=1)),
