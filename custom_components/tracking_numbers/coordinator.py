@@ -113,6 +113,8 @@ class TrackingNumbersCoordinator(DataUpdateCoordinator):
             _LOGGER.error("Error fetching tracking numbers: %s", err)
             raise UpdateFailed(f"Error communicating with email server: {err}") from err
 
+    # Keep fetching and parsing in one method so the IMAP connection lifecycle stays
+    # localized and we avoid passing partially parsed email state between helpers.
     def _fetch_and_parse_emails(self) -> list[dict[str, Any]]:
         """Fetch emails and parse tracking numbers (blocking operation)."""
         # Get configuration
@@ -197,7 +199,10 @@ class TrackingNumbersCoordinator(DataUpdateCoordinator):
 
         # Run parsers on each email
         for email in emails:
-            email_from = email[EMAIL_ATTR_FROM]
+            # Capture subject/body so forwarded messages can be matched even when sender changes.
+            email_from = email.get(EMAIL_ATTR_FROM) or ""
+            email_subject = email.get(EMAIL_ATTR_SUBJECT) or ""
+            email_body = email.get(EMAIL_ATTR_BODY) or ""
             delivered_at = email.get(EMAIL_ATTR_DATE)
 
             if isinstance(email_from, (list, tuple)):
@@ -206,7 +211,12 @@ class TrackingNumbersCoordinator(DataUpdateCoordinator):
             # Run matching parsers
             for ATTR, EMAIL_DOMAIN, parser in parsers:
                 try:
-                    if EMAIL_DOMAIN in email_from:
+                    if self._should_run_parser(
+                        email_from,
+                        email_subject,
+                        email_body,
+                        EMAIL_DOMAIN,
+                    ):
                         tracking_nums = parser(email=email)
                         if tracking_nums:
                             enriched = self._enrich_tracking_results(tracking_nums, delivered_at)
@@ -573,3 +583,32 @@ class TrackingNumbersCoordinator(DataUpdateCoordinator):
             "by_carrier": by_carrier,
             "by_retailer": by_retailer,
         }
+
+    # This helper keeps sender checks in one place while allowing forwarded emails to match
+    # original retailer domains without breaking the legacy sender-based behavior.
+    def _should_run_parser(
+        self,
+        email_from: str,
+        email_subject: str,
+        email_body: str,
+        email_domain: str,
+    ) -> bool:
+        """Return True when a parser should run for an email."""
+        if email_domain in email_from:
+            return True
+
+        if not self._is_forwarded_message(email_subject, email_body):
+            return False
+
+        combined = f"{email_subject}\n{email_body}".lower()
+        return email_domain in combined
+
+    # This helper uses common forward markers so we only scan forward content when it is likely present.
+    def _is_forwarded_message(self, email_subject: str, email_body: str) -> bool:
+        """Detect forwarded emails using common mail client markers."""
+        subject = email_subject.lower().strip()
+        if subject.startswith(("fw:", "fwd:")):
+            return True
+
+        body = email_body.lower()
+        return "forwarded message" in body or "begin forwarded message" in body
