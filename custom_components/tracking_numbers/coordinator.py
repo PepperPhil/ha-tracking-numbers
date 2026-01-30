@@ -32,6 +32,7 @@ from .const import (
     EMAIL_ATTR_SUBJECT,
     EMAIL_ATTR_BODY,
     EMAIL_ATTR_DATE,
+    FORWARD_SUBJECT_PREFIXES,
     TRACKING_NUMBER_URLS,
     MANUAL_RETAILER_CODE,
     MANUAL_ORIGIN_FALLBACK,
@@ -603,11 +604,12 @@ class TrackingNumbersCoordinator(DataUpdateCoordinator):
         combined = f"{email_subject}\n{email_body}".lower()
         return email_domain in combined
 
-    # This helper uses common forward markers so we only scan forward content when it is likely present.
+    # This helper uses localized forward markers so forwarded subjects are detected even when
+    # mail clients translate the prefix, keeping the scan focused on likely forwarded content.
     def _is_forwarded_message(self, email_subject: str, email_body: str) -> bool:
         """Detect forwarded emails using common mail client markers."""
         subject = email_subject.lower().strip()
-        if subject.startswith(("fw:", "fwd:")):
+        if subject.startswith(FORWARD_SUBJECT_PREFIXES):
             return True
 
         body = email_body.lower()

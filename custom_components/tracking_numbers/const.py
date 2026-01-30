@@ -42,6 +42,28 @@ FEDEX_TRACKING_NUMBER_REGEX = r"\b(\d{12})\b"
 
 EMAIL_DOMAIN_REGEX = r"@([\w.-]+)"
 
+# These localized forward prefixes are centralized so forwarded-email detection can stay
+# consistent across the integration when subjects are translated by different mail clients.
+FORWARD_SUBJECT_PREFIXES = (
+    "fw:",
+    "fwd:",
+    "wg:",  # German: Weitergeleitet
+    "tr:",  # French: Transféré
+    "rv:",  # Spanish: Reenviado
+    "enc:",  # Portuguese: Encaminhado
+    "vb:",  # Swedish: Vidarebefordrat
+    "vs:",  # Danish/Norwegian: Videresendt
+    "inoltrato:",  # Italian: Inoltrato
+    "转发:",  # Chinese: Forward
+    "轉寄:",  # Chinese (Traditional): Forward
+    "転送:",  # Japanese: Forward
+    "전달:",  # Korean: Forward
+    "пересл:",  # Russian: Переслано (forwarded)
+    "переслано:",  # Russian: Forwarded
+    "إعادة توجيه:",  # Arabic: Forward
+    "הועבר:",  # Hebrew: Forwarded
+)
+
 TRACKING_NUMBER_URLS = {
   'ups': "https://www.ups.com/track?loc=en_US&tracknum=",
   'usps': "https://tools.usps.com/go/TrackConfirmAction?qtc_tLabels1=",
