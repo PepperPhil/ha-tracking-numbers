@@ -113,6 +113,8 @@ class TrackingNumbersCoordinator(DataUpdateCoordinator):
             _LOGGER.error("Error fetching tracking numbers: %s", err)
             raise UpdateFailed(f"Error communicating with email server: {err}") from err
 
+    # Keep fetching and parsing in one method so the IMAP connection lifecycle stays
+    # localized and we avoid passing partially parsed email state between helpers.
     def _fetch_and_parse_emails(self) -> list[dict[str, Any]]:
         """Fetch emails and parse tracking numbers (blocking operation)."""
         # Get configuration
