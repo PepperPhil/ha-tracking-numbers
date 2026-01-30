@@ -43,6 +43,18 @@ After setup, click **Configure** to modify:
 - **Scan interval** (5-1440 minutes): How often to check for new packages
 - **Max packages** (10-500): Maximum packages to store
 
+## Forwarded Emails
+
+If you forward delivery notifications to a shared mailbox, the integration can still detect tracking
+numbers by scanning the forwarded message content for retailer domains. This works best when:
+
+- The forwarded email includes the original message content (not just a short note).
+- The subject includes forward markers like `FW:` or `FWD:` (common default behavior).
+
+If your mail system strips the original content or rewrites the subject, ensure the forwarded
+message still includes the original retailer domain in the forwarded headers or body (for example
+`custcomm.dhl.de` from a DHL message) so parsers can match.
+
 ## Data Structure
 
 The sensor provides a **flat packages array** optimized for custom cards:
@@ -195,6 +207,7 @@ Amazon, eBay, PayPal, AliExpress, Newegg, Best Buy, Home Depot, Lowe's, Target, 
 - Verify emails exist in the configured folder
 - Check days_old setting (default: 30 days)
 - Look for emails from known retailers
+- For forwarded messages, confirm the forwarded content still contains the original retailer domain
 - Check logs for parser errors
 
 ### Packages not updating
