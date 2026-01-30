@@ -20,17 +20,19 @@ def parse_dhl(email):
     _LOGGER.debug(f"[Dhl] Starting parser")
 
     body = email[EMAIL_ATTR_BODY] or ""
-    matches = re.findall(r'idc=([^"&]+)', body)
-    matches.extend(re.findall(r'piececode=([0-9]{10,})', body))
+    # We collect into a set first to avoid logging a large number of duplicate matches
+    # that can appear when the same tracking URL is repeated across HTML and text parts.
+    matches = set(re.findall(r'idc=([^"&]+)', body))
+    matches.update(re.findall(r'piececode=([0-9]{10,})', body))
 
     soup = BeautifulSoup(body, "html.parser")
     for link in soup.find_all("a"):
         href = link.get("href") or ""
-        matches.extend(re.findall(r'idc=([^"&]+)', href))
-        matches.extend(re.findall(r'piececode=([0-9]{10,})', href))
+        matches.update(re.findall(r'idc=([^"&]+)', href))
+        matches.update(re.findall(r'piececode=([0-9]{10,})', href))
     _LOGGER.debug(f"[Dhl] Found {len(matches)} potential tracking numbers")
 
-    for tracking_number in matches:
+    for tracking_number in sorted(matches):
         if tracking_number not in tracking_numbers:
             _LOGGER.debug(f"[Dhl] Found tracking number: {tracking_number}")
             tracking_numbers.append(tracking_number)
