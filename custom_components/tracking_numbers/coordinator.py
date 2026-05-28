@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import timedelta, date, datetime, timezone
+from functools import lru_cache
 import logging
 import re
 from typing import Any
@@ -48,6 +49,11 @@ from .const import (
 from .parsers_list import parsers, find_carrier, retailer_display_name
 
 _LOGGER = logging.getLogger(__name__)
+
+@lru_cache(maxsize=128)
+def _domain_match_pattern(domain: str) -> re.Pattern:
+    """Return a cached case-insensitive regex for a sender domain."""
+    return re.compile(re.escape(domain), re.IGNORECASE)
 
 
 class TrackingNumbersCoordinator(DataUpdateCoordinator):
@@ -609,7 +615,7 @@ class TrackingNumbersCoordinator(DataUpdateCoordinator):
         if not self._is_forwarded_message(email_subject, email_body):
             return False
 
-        domain_pattern = re.compile(re.escape(email_domain), re.IGNORECASE)
+        domain_pattern = _domain_match_pattern(email_domain)
         return bool(
             domain_pattern.search(email_subject) or domain_pattern.search(email_body)
         )
