@@ -28,6 +28,9 @@ DEFAULT_DAYS_OLD = 30
 DEFAULT_SCAN_INTERVAL = 30  # minutes
 DEFAULT_MAX_PACKAGES = 100
 
+# Seconds to wait for an IMAP server to respond on connect/login probes.
+IMAP_CONNECTION_TIMEOUT = 10
+
 ATTR_COUNT = 'count'
 ATTR_TRACKING_NUMBERS = 'tracking_numbers'
 
@@ -82,8 +85,40 @@ CARRIER_LINK_HINTS = {
 }
 
 MANUAL_RETAILER_CODE = 'manual_entry'
+MANUAL_RETAILER_NAME = 'Manual Entry'
 MANUAL_ORIGIN_FALLBACK = 'Manual Entry'
 MANUAL_CARRIER_FALLBACK = 'Custom'
+
+# Human-readable names for parser ATTR slugs. Fallback is title-cased ATTR.
+# Only entries that don't title-case cleanly need to be listed here.
+RETAILER_DISPLAY_NAMES = {
+    'ups': 'UPS',
+    'usps': 'USPS',
+    'fedex': 'FedEx',
+    'dhl': 'DHL',
+    'ebay': 'eBay',
+    'paypal': 'PayPal',
+    'ali_express': 'AliExpress',
+    'amazon_de': 'Amazon DE',
+    'bh_photo': 'B&H Photo',
+    'dsw': 'DSW',
+    'bespoke_post': 'Bespoke Post',
+    'swiss_post': 'Swiss Post',
+    'adam_and_eve': 'Adam & Eve',
+    'gamestop': 'GameStop',
+    'litter_robot': 'Litter-Robot',
+    'smartesthouse': 'The Smartest House',
+    'house_of_noa': 'House of Noa',
+    'pledgebox': 'PledgeBox',
+    'thrift_books': 'ThriftBooks',
+    'switchbot': 'SwitchBot',
+    'newegg': 'Newegg',
+    'rockauto': 'RockAuto',
+    'lowes': "Lowe's",
+    'nuleaf': 'NuLeaf',
+    'hue': 'Philips Hue',
+    'generic': 'Generic',
+}
 STORE_KEY_MANUAL_PACKAGES = 'manual_packages'
 STORE_KEY_HIDDEN_TRACKING_NUMBERS = 'hidden_tracking_numbers'
 LEGACY_STORE_KEY_IGNORED = 'ignored_tracking_numbers'

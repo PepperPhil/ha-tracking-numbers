@@ -9,6 +9,7 @@ from .const import (
     EMAIL_ATTR_BODY,
     TRACKING_NUMBER_URLS,
     CARRIER_LINK_HINTS,
+    RETAILER_DISPLAY_NAMES,
     usps_regex,
     fedex_regex,
     ups_regex,
@@ -67,6 +68,11 @@ from .parsers.moen import ATTR_MOEN, EMAIL_DOMAIN_MOEN, parse_moen
 from .parsers.lowes import ATTR_LOWES, EMAIL_DOMAIN_LOWES, parse_lowes
 from .parsers.wayfair import ATTR_WAYFAIR, EMAIL_DOMAIN_WAYFAIR, parse_wayfair
 from .parsers.switchbot import ATTR_SWITCHBOT, EMAIL_DOMAIN_SWITCHBOT, parse_switchbot
+from .parsers.mixbook import ATTR_MIXBOOK, EMAIL_DOMAIN_MIXBOOK, parse_mixbook
+from .parsers.costway import ATTR_COSTWAY, EMAIL_DOMAIN_COSTWAY, parse_costway
+from .parsers.walmart import ATTR_WALMART, EMAIL_DOMAIN_WALMART, parse_walmart
+from .parsers.giri_designs import ATTR_GIRI_DESIGNS, EMAIL_DOMAIN_GIRI_DESIGNS, parse_giri_designs
+from .parsers.cradlewise import ATTR_CRADLEWISE, EMAIL_DOMAIN_CRADLEWISE, parse_cradlewise
 from .parsers.generic import ATTR_GENERIC, EMAIL_DOMAIN_GENERIC, parse_generic
 
 _LOGGER = logging.getLogger(__name__)
@@ -125,6 +131,11 @@ parsers = [
     (ATTR_LOWES, EMAIL_DOMAIN_LOWES, parse_lowes),
     (ATTR_WAYFAIR, EMAIL_DOMAIN_WAYFAIR, parse_wayfair),
     (ATTR_SWITCHBOT, EMAIL_DOMAIN_SWITCHBOT, parse_switchbot),
+    (ATTR_MIXBOOK, EMAIL_DOMAIN_MIXBOOK, parse_mixbook),
+    (ATTR_COSTWAY, EMAIL_DOMAIN_COSTWAY, parse_costway),
+    (ATTR_WALMART, EMAIL_DOMAIN_WALMART, parse_walmart),
+    (ATTR_GIRI_DESIGNS, EMAIL_DOMAIN_GIRI_DESIGNS, parse_giri_designs),
+    (ATTR_CRADLEWISE, EMAIL_DOMAIN_CRADLEWISE, parse_cradlewise),
     (ATTR_GENERIC, EMAIL_DOMAIN_GENERIC, parse_generic),
 ]
 
@@ -136,6 +147,20 @@ EMAIL_DOMAIN_CARRIER_MAP = {
     EMAIL_DOMAIN_DHL: 'DHL',
     EMAIL_DOMAIN_SWISS_POST: 'Swiss Post',
 }
+
+
+def retailer_display_name(attr: str) -> str:
+    """Human-readable retailer name derived from a parser ATTR slug.
+
+    `attr` is the first element of a parsers entry (e.g. 'amazon', 'amazon_de',
+    'bh_photo'). Unknown slugs fall back to a simple title-case transform.
+    """
+    if not attr:
+        return 'Unknown'
+    key = str(attr).lower()
+    if key in RETAILER_DISPLAY_NAMES:
+        return RETAILER_DISPLAY_NAMES[key]
+    return key.replace('_', ' ').replace('-', ' ').title()
 
 
 def _carrier_from_link(link: str | None) -> str | None:

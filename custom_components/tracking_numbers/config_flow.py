@@ -6,7 +6,7 @@ from typing import Any
 
 import voluptuous as vol
 from imapclient import IMAPClient
-from imapclient.exceptions import IMAPClientError
+from imapclient.exceptions import IMAPClientError, LoginError
 
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant, callback
@@ -44,26 +44,34 @@ async def validate_imap_connection(
 
     def _test_connection():
         """Test IMAP connection (blocking)."""
+        server = None
         try:
             server = IMAPClient(
                 data[CONF_IMAP_SERVER],
                 port=data[CONF_IMAP_PORT],
                 use_uid=True,
                 ssl=data[CONF_USE_SSL],
-                timeout=10
             )
             server.login(data[CONF_EMAIL], data[CONF_PASSWORD])
             server.select_folder(data.get(CONF_EMAIL_FOLDER, DEFAULT_FOLDER), readonly=True)
-            server.logout()
             return True
+        except LoginError as err:
+            _LOGGER.exception("IMAP authentication failed (%s)", type(err).__name__)
+            raise InvalidAuth from err
         except IMAPClientError as err:
-            _LOGGER.error("IMAP connection error: %s", err)
-            if "authentication" in str(err).lower() or "login" in str(err).lower():
-                raise InvalidAuth from err
+            _LOGGER.exception("IMAP connection error (%s)", type(err).__name__)
             raise CannotConnect from err
         except Exception as err:
-            _LOGGER.error("Unexpected error during IMAP connection: %s", err)
+            _LOGGER.exception(
+                "Unexpected error during IMAP connection (%s)", type(err).__name__
+            )
             raise CannotConnect from err
+        finally:
+            if server is not None:
+                try:
+                    server.logout()
+                except Exception:  # pylint: disable=broad-except
+                    pass
 
     await hass.async_add_executor_job(_test_connection)
 
@@ -93,6 +101,8 @@ class TrackingNumbersConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input.setdefault(CONF_USE_SSL, DEFAULT_USE_SSL)
                 user_input.setdefault(CONF_EMAIL_FOLDER, DEFAULT_FOLDER)
                 user_input.setdefault(CONF_DAYS_OLD, DEFAULT_DAYS_OLD)
+                user_input.setdefault(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+                user_input.setdefault(CONF_MAX_PACKAGES, DEFAULT_MAX_PACKAGES)
 
                 info = await validate_imap_connection(self.hass, user_input)
             except CannotConnect:
@@ -119,14 +129,18 @@ class TrackingNumbersConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(
                     CONF_USE_SSL, default=DEFAULT_USE_SSL
                 ): cv.boolean,
-                # Keep folder configurable in setup so users can target provider-specific
-                # mailboxes where delivery notifications are stored by default.
+                vol.Optional(
+                    CONF_DAYS_OLD, default=DEFAULT_DAYS_OLD
+                ): vol.All(cv.positive_int, vol.Range(min=1)),
                 vol.Optional(
                     CONF_EMAIL_FOLDER, default=DEFAULT_FOLDER
                 ): cv.string,
                 vol.Optional(
-                    CONF_DAYS_OLD, default=DEFAULT_DAYS_OLD
-                ): vol.All(cv.positive_int, vol.Range(min=1)),
+                    CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+                ): vol.All(cv.positive_int, vol.Range(min=5, max=1440)),
+                vol.Optional(
+                    CONF_MAX_PACKAGES, default=DEFAULT_MAX_PACKAGES
+                ): vol.All(cv.positive_int, vol.Range(min=10, max=500)),
             }
         )
 
@@ -140,15 +154,11 @@ class TrackingNumbersConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> TrackingNumbersOptionsFlowHandler:
         """Get the options flow for this handler."""
-        return TrackingNumbersOptionsFlowHandler(config_entry)
+        return TrackingNumbersOptionsFlowHandler()
 
 
 class TrackingNumbersOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for Tracking Numbers."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None

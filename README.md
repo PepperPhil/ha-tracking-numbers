@@ -16,6 +16,8 @@ Supported Emails
 - Bespoke Post
 - Best Buy
 - Chewy
+- Costway
+- Cradlewise
 - DHL
 - Dollar Shave Club
 - DSW
@@ -24,6 +26,7 @@ Supported Emails
 - FedEx
 - Gamestop
 - Georgia Power
+- Giri Designs
 - Google Express
 - Groupon
 - Guitar Center
@@ -33,6 +36,7 @@ Supported Emails
 - Loog Guitars
 - Lowes
 - Manta Sleep
+- Mixbook
 - Moen
 - Monoprice
 - NewEgg
@@ -55,6 +59,7 @@ Supported Emails
 - Ubiquiti
 - UPS
 - USPS
+- Walmart
 - Wayfair
 - Western Digital
 - Wyze
