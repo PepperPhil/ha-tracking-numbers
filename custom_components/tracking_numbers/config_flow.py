@@ -32,7 +32,6 @@ from .const import (
     DEFAULT_DAYS_OLD,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_MAX_PACKAGES,
-    IMAP_CONNECTION_TIMEOUT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,7 +51,6 @@ async def validate_imap_connection(
                 port=data[CONF_IMAP_PORT],
                 use_uid=True,
                 ssl=data[CONF_USE_SSL],
-                timeout=IMAP_CONNECTION_TIMEOUT,
             )
             server.login(data[CONF_EMAIL], data[CONF_PASSWORD])
             server.select_folder(data.get(CONF_EMAIL_FOLDER, DEFAULT_FOLDER), readonly=True)

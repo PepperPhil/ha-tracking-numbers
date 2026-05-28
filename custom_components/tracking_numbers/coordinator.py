@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import timedelta, date, datetime, timezone
 import logging
+import re
 from typing import Any
 from email.utils import parsedate_to_datetime
 
@@ -41,7 +42,6 @@ from .const import (
     STORE_KEY_MANUAL_PACKAGES,
     STORE_KEY_HIDDEN_TRACKING_NUMBERS,
     LEGACY_STORE_KEY_IGNORED,
-    IMAP_CONNECTION_TIMEOUT,
 )
 
 # Import parsers and helpers from shared module
@@ -142,7 +142,7 @@ class TrackingNumbersCoordinator(DataUpdateCoordinator):
         _LOGGER.info("Email: %s, Folder: %s, Days: %s", email, folder, days_old)
 
         # Connect to IMAP server
-        server = IMAPClient(imap_server, port=imap_port, use_uid=True, ssl=use_ssl, timeout=IMAP_CONNECTION_TIMEOUT)
+        server = IMAPClient(imap_server, port=imap_port, use_uid=True, ssl=use_ssl)
 
         try:
             _LOGGER.debug("Attempting IMAP login...")
@@ -609,8 +609,10 @@ class TrackingNumbersCoordinator(DataUpdateCoordinator):
         if not self._is_forwarded_message(email_subject, email_body):
             return False
 
-        combined = f"{email_subject}\n{email_body}".lower()
-        return email_domain in combined
+        domain_pattern = re.compile(re.escape(email_domain), re.IGNORECASE)
+        return bool(
+            domain_pattern.search(email_subject) or domain_pattern.search(email_body)
+        )
 
     # This helper uses localized forward markers so forwarded subjects are detected even when
     # mail clients translate the prefix, keeping the scan focused on likely forwarded content.
