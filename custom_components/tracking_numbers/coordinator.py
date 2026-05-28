@@ -50,7 +50,7 @@ from .parsers_list import parsers, find_carrier, retailer_display_name
 
 _LOGGER = logging.getLogger(__name__)
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=32)
 def _domain_match_pattern(domain: str) -> re.Pattern:
     """Return a cached case-insensitive regex for a sender domain."""
     return re.compile(re.escape(domain), re.IGNORECASE)

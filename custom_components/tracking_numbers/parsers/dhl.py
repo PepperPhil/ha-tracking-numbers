@@ -9,8 +9,8 @@ from ..const import EMAIL_ATTR_BODY
 _LOGGER = logging.getLogger(__name__)
 ATTR_DHL = 'dhl'
 EMAIL_DOMAIN_DHL = 'dhl'
-dhl_idc_regex = re.compile(r'idc=([^"&]+)')
-dhl_piececode_regex = re.compile(r'piececode=([0-9]{10,})')
+DHL_IDC_REGEX = re.compile(r'idc=([^"&]+)')
+DHL_PIECECODE_REGEX = re.compile(r'piececode=([0-9]{10,})')
 
 
 def parse_dhl(email):
@@ -24,14 +24,14 @@ def parse_dhl(email):
     body = email[EMAIL_ATTR_BODY] or ""
     # We collect into a set first to avoid logging a large number of duplicate matches
     # that can appear when the same tracking URL is repeated across HTML and text parts.
-    matches = set(dhl_idc_regex.findall(body))
-    matches.update(dhl_piececode_regex.findall(body))
+    matches = set(DHL_IDC_REGEX.findall(body))
+    matches.update(DHL_PIECECODE_REGEX.findall(body))
 
     soup = BeautifulSoup(body, "html.parser")
     for link in soup.find_all("a"):
         href = link.get("href") or ""
-        matches.update(dhl_idc_regex.findall(href))
-        matches.update(dhl_piececode_regex.findall(href))
+        matches.update(DHL_IDC_REGEX.findall(href))
+        matches.update(DHL_PIECECODE_REGEX.findall(href))
     _LOGGER.debug(f"[Dhl] Found {len(matches)} potential tracking numbers")
 
     for tracking_number in sorted(matches):
