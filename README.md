@@ -2,6 +2,9 @@
 
 Gets emails from IMAP and parses out any tracking numbers. Goes well with the [tracking-number-card](https://github.com/ljmerza/tracking-number-card) for lovelace!
 
+Forwarded delivery notifications are supported as long as the forwarded content retains the original
+retailer domain somewhere in the subject or body.
+
 Supported Emails
 
 - Adafruit
